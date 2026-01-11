@@ -4,6 +4,7 @@ import importlib
 from reactpy import component
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from tethys_apps.base.page_handler import global_page_controller
+from pathlib import Path
 
 
 class App(ComponentBase):
@@ -43,7 +44,7 @@ def home(lib):
 
     def update_preview():
         code = user_code.replace('@App.page', '')
-        (user_workspace.path / "code.py").write_text(code)
+        (Path(user_workspace.path) / "code.py").write_text(code)
         set_uuid(str(uuid4()))
     
     user_workspace = lib.hooks.use_workspace(user)
@@ -54,8 +55,8 @@ def home(lib):
     else:
         if user_code:
             render_code = user_code
-        elif (user_workspace.path / "code.py").exists():
-            _code = (user_workspace.path / "code.py").read_text()
+        elif (Path(user_workspace.path) / "code.py").exists():
+            _code = (Path(user_workspace.path) / "code.py").read_text()
             render_code = _code
             set_user_code(_code)
         else:
@@ -97,7 +98,7 @@ def preview(lib):
     elif user_workspace.quota_exceeded:
         return lib.html.h1("Quota Exceeded. Cannot render preview.")
     else:
-        user_code_fpath = (user_workspace.path / "code.py")
+        user_code_fpath = Path(user_workspace.path) / "code.py"
         code_path = user_code_fpath if user_code_fpath.exists() else default_code_path
         spec = importlib.util.spec_from_file_location('playground_code', code_path)
         module = importlib.util.module_from_spec(spec)
