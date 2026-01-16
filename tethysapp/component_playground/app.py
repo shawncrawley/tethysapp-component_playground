@@ -1,10 +1,9 @@
-from tethys_sdk.components import ComponentBase
-from uuid import uuid4
-import importlib
+from pathlib import Path
 from reactpy import component
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from tethys_sdk.components import ComponentBase
 from tethys_apps.base.page_handler import global_page_controller
-from pathlib import Path
+from .utils import generate_title, import_from_path
 
 
 class App(ComponentBase):
@@ -26,83 +25,134 @@ class App(ComponentBase):
     default_layout = "NavHeader"
     nav_links = "auto"
 
+    def example_links(self):
+        return [
+            {
+                "href": f"/apps/{self.root_url}/example/{p.stem}/",
+                "title": generate_title(p.stem),
+            }
+            for p in (self.resources_path.path / "examples").iterdir()
+            if not p.stem.startswith("__") and p.stem != "welcome"
+        ]
+
+    @property
+    def navigation_links(self):
+        return super().navigation_links + self.example_links()
+
 
 @xframe_options_sameorigin
 def handler(*args, **kwargs):
     return global_page_controller(*args, **kwargs)
 
 
-@App.page
+@App.page(title="Welcome")
 def home(lib):
-    lib.register('@monaco-editor/react', 'me', default_export="Editor")
-    user = lib.hooks.use_user()
-    default_code_path = lib.hooks.use_resources().path / "default_code.py"
-    default_code = lib.hooks.use_memo(lambda: default_code_path.read_text(), [])
-    user_code, set_user_code = lib.hooks.use_state("")
-    uuid, set_uuid = lib.hooks.use_state(str(uuid4()))
-    render_code = ""
+    return EditorAndPreview(lib, "welcome")
 
-    def update_preview():
-        code = user_code.replace('@App.page', '')
-        (Path(user_workspace.path) / "code.py").write_text(code)
-        set_uuid(str(uuid4()))
-    
+
+@App.page(url="example/{script_name}", index=-1)
+def examples(lib, script_name):
+    return EditorAndPreview(lib, script_name)
+
+
+def EditorAndPreview(lib, script_name):
+    lib.register("@monaco-editor/react", "me", default_export="Editor")
+    lib.register(
+        "react-bootstrap-toggle",
+        "bst",
+        styles=[
+            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap2-toggle.min.css"
+        ],
+        default_export="Toggle",
+    )
+    user = lib.hooks.use_user()
+    auto_update, set_auto_update = lib.hooks.use_state(True)
     user_workspace = lib.hooks.use_workspace(user)
-    if user_workspace.checking_quota:
-        pass
-    elif user_workspace.quota_exceeded:
-        pass
-    else:
-        if user_code:
-            render_code = user_code
-        elif (Path(user_workspace.path) / "code.py").exists():
-            _code = (Path(user_workspace.path) / "code.py").read_text()
-            render_code = _code
-            set_user_code(_code)
+    examples_path = lib.hooks.use_resources().path / "examples"
+    editor_code, set_editor_code = lib.hooks.use_state("")
+    _, set_force_update = lib.hooks.use_state(True)
+
+    def initialize_code():
+        if user_workspace.checking_quota:
+            return
+        elif user_workspace.quota_exceeded:
+            return
+
+        example_fpath = examples_path / f"{script_name}.py"
+        if not example_fpath.exists():
+            init_code = None
         else:
-            render_code = default_code
+            init_code = example_fpath.read_text()
+
+        set_editor_code(init_code)
+        if init_code:
+            update_preview(init_code.replace("@App.page", ""))
+
+    def update_preview(code=None):
+        code_fpath = Path(user_workspace.path) / f"{script_name}.py"
+        code_fpath.write_text(code)
+        set_force_update(lambda current: not current)
+
+    lib.hooks.use_effect(initialize_code, [user_workspace])
 
     return lib.tethys.Display(
+        lib.bs.Row(lib.html.h3(generate_title(script_name))),
         lib.bs.Row(
+            lib.html.label(
+                "Update Mode: ",
+                lib.bst.Toggle(
+                    size="sm",
+                    width="200px",
+                    onstyle="primary",
+                    offstyle="secondary",
+                    on="Auto",
+                    off="On Click \u2193",
+                    active=auto_update,
+                    onClick=lambda *_: set_auto_update(not auto_update),
+                ),
+            ),
             lib.bs.Button(
-                on_click=lambda _: update_preview(),
-            )(
-                "Render"
-            )
+                size="sm",
+                on_click=lambda _: update_preview(editor_code.replace("@App.page", "")),
+                disabled=auto_update,
+            )("Render"),
         ),
         lib.bs.Row(
             lib.bs.Col(
-                lib.me.Editor(
-                    height="70vh",
-                    defaultLanguage="python",
-                    defaultValue=render_code,
-                    onChange=lambda v, _: set_user_code(v),
+                (
+                    lib.me.Editor(
+                        height="80vh",
+                        defaultLanguage="python",
+                        value=editor_code,
+                        onChange=lambda v, _: (
+                            set_editor_code(v),
+                            (
+                                update_preview(v.replace("@App.page", ""))
+                                if auto_update
+                                else None
+                            ),
+                        ),
+                    )
+                    if editor_code
+                    else f'Example "{script_name}" does not exist.'
                 ),
             ),
-            lib.bs.Col(
-                lib.html.iframe(src=f"/apps/component-playground/preview?uuid={uuid}", style=lib.Style(width="100%", height="85vh")),
-            )
-        )
+            lib.bs.Col(style=lib.Style(height="80vh", overflow="scroll"))(
+                Preview(lib, user_workspace, script_name)
+            ),
+        ),
     )
 
-@App.page(
-    layout=None,
-    handler=handler,
-)
-def preview(lib):
-    user = lib.hooks.use_user()
-    default_code_path = lib.hooks.use_resources().path / "default_code.py"
-    user_workspace = lib.hooks.use_workspace(user)
+
+@component
+def Preview(lib, user_workspace, script_name):
     if user_workspace.checking_quota:
-        return lib.html.h1("Loading...")
+        return lib.html.h2("Loading...")
     elif user_workspace.quota_exceeded:
-        return lib.html.h1("Quota Exceeded. Cannot render preview.")
-    else:
-        user_code_fpath = Path(user_workspace.path) / "code.py"
-        code_path = user_code_fpath if user_code_fpath.exists() else default_code_path
-        spec = importlib.util.spec_from_file_location('playground_code', code_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return lib.html.div(style=lib.Style(height="100vh"))(
-            component(module.test)(lib)
-        )
+        return lib.html.p("Your user quota has been exceeded.")
+    try:
+        code_fpath = Path(user_workspace.path) / f"{script_name}.py"
+        module = import_from_path(script_name, code_fpath)
+        return component(getattr(module, script_name))(lib)
+    except Exception as e:
+        return lib.html.p(str(e))
