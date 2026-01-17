@@ -16,16 +16,12 @@ def wms_with_legend(lib):
 
     def update_legend_url(event=None):
         resolution = event.target.values_.resolution if event else None
-        lib.utils.background_execute(lambda:
-            set_legend_url(
-                wms_source.get_legend_url(resolution)
-            ),
-            delay_seconds=1
+        lib.utils.background_execute(
+            lambda: set_legend_url(wms_source.get_legend_url(resolution)),
+            delay_seconds=1,
         )
 
-    lib.hooks.use_effect(
-        lambda: update_legend_url(), dependencies=[]
-    )
+    lib.hooks.use_effect(lambda: update_legend_url(), dependencies=[])
 
     return lib.tethys.Display(style=lib.Style(position="relative"))(
         lib.html.div(
