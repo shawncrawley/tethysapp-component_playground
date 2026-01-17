@@ -8,7 +8,7 @@ CUSTOM_PRJ = (
 
 
 @App.page
-def wms_image_with_custom_projection(lib):
+def wms_with_custom_projection(lib):
     return lib.tethys.Display(
         lib.tethys.Map(
             projection=lib.Props(

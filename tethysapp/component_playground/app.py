@@ -61,7 +61,7 @@ def EditorAndPreview(lib, script_name):
         "react-bootstrap-toggle",
         "bst",
         styles=[
-            "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-toggle/2.2.2/css/bootstrap2-toggle.min.css"
+            "https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css",
         ],
         default_export="Toggle",
     )
@@ -98,8 +98,9 @@ def EditorAndPreview(lib, script_name):
     return lib.tethys.Display(
         lib.bs.Row(lib.html.h3(generate_title(script_name))),
         lib.bs.Row(
-            lib.html.label(
+            lib.html.span(
                 "Update Mode: ",
+                lib.html.style(".toggle-handle{background: white;}"),
                 lib.bst.Toggle(
                     size="sm",
                     width="200px",

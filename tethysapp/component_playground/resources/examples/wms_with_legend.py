@@ -14,8 +14,17 @@ def wms_with_legend(lib):
         )
     )
 
+    def update_legend_url(event=None):
+        resolution = event.target.values_.resolution if event else None
+        lib.utils.background_execute(lambda:
+            set_legend_url(
+                wms_source.get_legend_url(resolution)
+            ),
+            delay_seconds=1
+        )
+
     lib.hooks.use_effect(
-        lambda: set_legend_url(wms_source.get_legend_url()), dependencies=[]
+        lambda: update_legend_url(), dependencies=[]
     )
 
     return lib.tethys.Display(style=lib.Style(position="relative"))(
@@ -24,9 +33,7 @@ def wms_with_legend(lib):
         )(lib.html.img(src=legend_url) if legend_url else None),
         lib.ol.Map(
             lib.ol.View(
-                onChange=lambda e: set_legend_url(
-                    wms_source.get_legend_url(e.target.values_.resolution)
-                ),
+                onChange=update_legend_url,
                 center=[-10997148, 4569099],
                 zoom=4,
             ),
