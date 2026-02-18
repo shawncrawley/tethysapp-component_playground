@@ -1,9 +1,8 @@
 from pathlib import Path
 from reactpy import component
-from django.views.decorators.clickjacking import xframe_options_sameorigin
 from tethys_sdk.components import ComponentBase
-from tethys_apps.base.page_handler import global_page_controller
 from .utils import generate_title, import_from_path
+from uuid import uuid4
 
 
 class App(ComponentBase):
@@ -39,17 +38,18 @@ class App(ComponentBase):
     def navigation_links(self):
         return super().navigation_links + self.example_links()
 
-
-@xframe_options_sameorigin
-def handler(*args, **kwargs):
-    return global_page_controller(*args, **kwargs)
-
-
 @App.page(title="Welcome")
 def home(lib):
     return EditorAndPreview(lib, "welcome")
 
+# @App.page(url="preview/{script_name}", index=-1, preload=[App().resources_path.path / "examples"])
+@App.page(url="preview/{script_name}", index=-1)
+def preview(lib, script_name):
+    user = lib.hooks.use_user()
+    user_workspace = lib.hooks.use_workspace(user)
+    return Preview(lib, user_workspace, script_name)
 
+# @App.page(url="example/{script_name}", index=-1, preload=[App().resources_path.path / "examples"])
 @App.page(url="example/{script_name}", index=-1)
 def examples(lib, script_name):
     return EditorAndPreview(lib, script_name)
@@ -71,6 +71,7 @@ def EditorAndPreview(lib, script_name):
     examples_path = lib.hooks.use_resources().path / "examples"
     editor_code, set_editor_code = lib.hooks.use_state("")
     _, set_force_update = lib.hooks.use_state(True)
+    render_id, set_render_id = lib.hooks.use_state(str(uuid4()))
 
     def initialize_code():
         if user_workspace.checking_quota:
@@ -92,6 +93,7 @@ def EditorAndPreview(lib, script_name):
         code_fpath = Path(user_workspace.path) / f"{script_name}.py"
         code_fpath.write_text(code)
         set_force_update(lambda current: not current)
+        set_render_id(str(uuid4()))
 
     lib.hooks.use_effect(initialize_code, [user_workspace])
 
@@ -139,7 +141,9 @@ def EditorAndPreview(lib, script_name):
                 ),
             ),
             lib.bs.Col(style=lib.Style(height="80vh", overflow="scroll"))(
-                Preview(lib, user_workspace, script_name)
+                lib.html.div(key=render_id, style=lib.Style(height="100%", width="100%"))(
+                    Preview(lib, user_workspace, script_name)
+                )
             ),
         ),
     )

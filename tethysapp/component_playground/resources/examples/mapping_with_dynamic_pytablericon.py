@@ -38,7 +38,7 @@ def mapping_with_dynamic_pytablericon(lib):
 
     return lib.tethys.Display(
         lib.bs.Button(
-            style=lib.Style(position="absolute", top=0, right="20px", zIndex=1),
+            style=lib.Style(position="absolute", right="20px", zIndex=1),
             onClick=lambda _: set_icon_index(
                 icon_index + 1 if icon_index + 1 < num_icons else 0
             ),

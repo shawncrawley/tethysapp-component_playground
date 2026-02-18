@@ -15,3 +15,9 @@ def import_from_path(module_name, file_path):
     # sys.modules[module_name] = module
     spec.loader.exec_module(module)
     return module
+
+def my_fancy_demo_model(*args):
+    import time
+    """A fancy demo model that does nothing meaningful."""
+    time.sleep(5)  # Simulate a time-consuming process
+    return f"Processed {', '.join(args)}!"

@@ -3,7 +3,7 @@ from tethysapp.component_playground.app import App
 
 
 @App.page
-def mapping_with_dyanmic_simplepycon(lib):
+def mapping_with_dynamic_simplepycon(lib):
     icon_index, set_icon_index = lib.hooks.use_state(0)
     icon_size = 16
     icon_names = [x.split("_")[1] for x in dir(all_icons) if x.startswith("get_")]
@@ -29,7 +29,7 @@ def mapping_with_dyanmic_simplepycon(lib):
 
     return lib.tethys.Display(
         lib.bs.Button(
-            style=lib.Style(position="absolute", top=0, right="20px", zIndex=1),
+            style=lib.Style(position="absolute", right="20px", zIndex=1),
             onClick=lambda _: set_icon_index(
                 icon_index + 1 if icon_index + 1 < num_icons else 0
             ),

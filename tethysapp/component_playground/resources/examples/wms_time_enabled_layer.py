@@ -46,7 +46,7 @@ def wms_time_enabled_layer(lib):
             ),
             lib.html.div(f"Time: {wms_time.isoformat()}"),
         ),
-        lib.tethys.Map(
+        lib.tethys.Map(center=[-10590000,5000000], zoom=4)(
             lib.ol.layer.Tile(
                 lib.ol.source.TileWMS(
                     options=lib.Props(

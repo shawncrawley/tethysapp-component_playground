@@ -6,7 +6,7 @@ def embed_video(lib):
     return lib.tethys.Display(
         # See https://www.npmjs.com/package/react-player for API that can be Pythonified here
         lib.rp.ReactPlayer(
-            src="https://www.youtube.com/watch?v=xvFZjo5PgG0",
+            src="https://www.youtube.com/watch?v=RCeC_zQo2u4",
             height="100%",
             width="100%",
             onReady=lambda: print(
