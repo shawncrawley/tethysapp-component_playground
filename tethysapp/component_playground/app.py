@@ -56,7 +56,7 @@ def examples(lib, script_name):
 
 
 def EditorAndPreview(lib, script_name):
-    lib.register("@monaco-editor/react", "me", default_export="Editor")
+    lib.register("editor.js", "e", default_export="Editor", host="/static/component_playground/js")
     lib.register(
         "react-bootstrap-toggle",
         "bst",
@@ -123,7 +123,7 @@ def EditorAndPreview(lib, script_name):
         lib.bs.Row(
             lib.bs.Col(
                 (
-                    lib.me.Editor(
+                    lib.e.Editor(
                         height="80vh",
                         defaultLanguage="python",
                         value=editor_code,
