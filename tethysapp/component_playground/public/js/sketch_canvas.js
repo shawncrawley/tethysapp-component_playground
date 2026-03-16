@@ -1,4 +1,4 @@
-import { ReactSketchCanvas } from 'https://esm.sh/react-sketch-canvas?deps=react@19.0,react-dom@19.0&external=react,react-dom';
+import { ReactSketchCanvas } from 'https://esm.sh/react-sketch-canvas?deps=react@19.0,react-dom@19.0';
 import {
     EraserFill, 
     ArrowCounterclockwise, 
@@ -6,7 +6,7 @@ import {
     PencilFill,
     Download,
     XCircleFill
-} from 'https://esm.sh/react-bootstrap-icons?deps=react@19.0,react-dom@19.0&external=react,react-dom';
+} from 'https://esm.sh/react-bootstrap-icons?deps=react@19.0,react-dom@19.0';
 
 export default function SketchCanvas(props, context) {
     const sketchCanvasHandler = React.useRef(null);
