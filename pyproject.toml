@@ -32,7 +32,6 @@ dependencies = [
     "pyproj",
     "pytablericons",
     "simplepycons",
-    "sqlite3",
 ]
 
 [tool.setuptools]
