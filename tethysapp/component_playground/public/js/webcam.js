@@ -1,9 +1,9 @@
-import { WebCamera as _WebCamera } from 'https://esm.sh/@shivantra/react-web-camera?deps=react@19.0,react-dom@19.0';
+import { WebCamera as _WebCamera } from 'https://esm.sh/@shivantra/react-web-camera?deps=react@19.0,react-dom@19.0&external=react,react-dom';
 import {fileToBase64} from 'https://esm.sh/filetobase64';
 import {
     Camera,
     ArrowRepeat
-} from 'https://esm.sh/react-bootstrap-icons?deps=react@19.0,react-dom@19.0';
+} from 'https://esm.sh/react-bootstrap-icons?deps=react@19.0,react-dom@19.0&external=react,react-dom';
 
 export default function WebCamera(props, context) {
     const cameraHandler = React.useRef(null);

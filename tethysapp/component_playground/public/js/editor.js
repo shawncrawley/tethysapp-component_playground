@@ -1,4 +1,4 @@
-import _Editor from "https://esm.sh/@monaco-editor/react/?deps=react@19.0,react-dom@19.0"
+import _Editor from "https://esm.sh/@monaco-editor/react/?deps=react@19.0,react-dom@19.0&external=react,react-dom";
 
 function debounce(func, timeout = 750) {
     let timer;

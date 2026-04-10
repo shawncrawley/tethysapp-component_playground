@@ -31,7 +31,8 @@ dependencies = [
     "geopandas",
     "pyproj",
     "pytablericons",
-    "simplepycons"
+    "simplepycons",
+    "sqlite3",
 ]
 
 [tool.setuptools]

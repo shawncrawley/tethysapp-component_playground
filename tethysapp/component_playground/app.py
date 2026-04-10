@@ -47,12 +47,25 @@ def home(lib):
 def preview(lib, script_name):
     user = lib.hooks.use_user()
     user_workspace = lib.hooks.use_workspace(user)
+    preload_components(lib, script_name)
     return Preview(lib, user_workspace, script_name)
 
 # @App.page(url="example/{script_name}", index=-1, preload=[App().resources_path.path / "examples"])
 @App.page(url="example/{script_name}", index=-1)
 def examples(lib, script_name):
+    preload_components(lib, script_name)
     return EditorAndPreview(lib, script_name)
+
+def preload_components(lib, script_name):
+    if script_name == "sqlite_db_integration":
+        lib.register('react-tabs', 'tabs', styles=['https://esm.sh/react-tabs@6.1.0/style/react-tabs.css'])
+        lib.tabs.Tab()
+        lib.tabs.Tabs()
+        lib.tabs.TabList()
+        lib.tabs.TabPanel()
+        lib.bs.FormGroup()
+        lib.bs.FormLabel()
+        lib.bs.FormControl()
 
 
 def EditorAndPreview(lib, script_name):
@@ -140,8 +153,8 @@ def EditorAndPreview(lib, script_name):
                     else f'Example "{script_name}" does not exist.'
                 ),
             ),
-            lib.bs.Col(style=lib.Style(height="80vh", overflow="scroll"))(
-                lib.html.div(key=render_id, style=lib.Style(height="100%", width="100%"))(
+            lib.bs.Col(style=lib.Style(height="80vh", overflow="auto"))(
+                lib.html.div(key=render_id, style=lib.Style(position="relative",height="100%", width="100%"))(
                     Preview(lib, user_workspace, script_name)
                 )
             ),
@@ -161,3 +174,131 @@ def Preview(lib, user_workspace, script_name):
         return component(getattr(module, script_name))(lib)
     except Exception as e:
         return lib.html.p(str(e))
+
+@App.page(layout=None)
+def mantine_layout(lib):
+    return lib.m.AppShell(header=lib.Props(height=60), mode="fixed", padding="md")(
+        lib.m.AppShellHeader(
+            lib.m.Group(h="100%", px="md", justify="space-between")(
+                lib.m.Text("Outer AppShell (Fixed Mode)"),
+                lib.m.Badge(color="blue")("Fixed")
+            )
+        ),
+        lib.m.AppShellMain(
+            lib.m.Text(fw=500, mb="md")(
+                "Nested AppShell Example"
+            ),
+            lib.m.Text(mb="md")(
+                "This example demonstrates a static mode AppShell nested inside a fixed mode AppShell. The",
+                "outer shell uses fixed positioning, while the inner shell uses static positioning with",
+                "sticky sections."
+            ),
+            lib.m.AppShell(
+                mode="static",
+                header=lib.Props(height=50),
+                navbar=lib.Props(width=250, breakpoint='sm'),
+                padding="md",
+                withBorder=True,
+            )(
+                lib.m.AppShellHeader(
+                    lib.m.Group(h="100%", px="md", justify="space-between")(
+                        lib.m.Text(size="sm")(
+                            "Inner AppShell (Static Mode)"
+                        ),
+                        lib.m.Badge(color="green", size="sm")(
+                            "Static"
+                        )
+                    )
+                ),
+                lib.m.AppShellNavbar(p="md")(
+                    lib.m.Text(size="sm", mb="sm", fw=500)(
+                        "Inner Navbar (Sticky)"
+                    ),
+                    lib.m.Text(size="sm")(
+                        "This navbar uses position: sticky and will stick within the scrollable area of the",
+                        "inner AppShell."
+                    ),
+                    lib.tethys.AppNavLinks(app=App)
+                ),
+                lib.m.AppShellMain(
+                    lib.m.Text(size="sm", mb="md")(
+                        "Inner Main Content"
+                    ),
+                    lib.m.Text(size="sm", mb="sm")(
+                        "Scroll this inner content area to see the sticky behavior of the inner header and",
+                        "navbar. They stick within their container, which is the inner AppShell."
+                    ),
+                    *[
+                        lib.m.Text(key=f"inner-{index}", size="sm", mb="xs")(
+                            f"Inner paragraph {index + 1}: This demonstrates how static mode works within a nested",
+                            "context. The sticky sections remain visible as you scroll within this container."
+                        ) for index in range(20)
+                    ]
+                )
+            ),
+            lib.m.Text(mt="xl", mb="md")(
+                "Content after the nested AppShell"
+            ),
+            *[
+                lib.m.Text(key=f"outer-{index}", mb="sm")(
+                    f"Outer paragraph {index + 1}: This content is part of the outer AppShell's main area. It",
+                    "demonstrates that the inner static AppShell behaves like a regular element within the",
+                    "document flow."
+                ) for index in range(10)
+            ]
+        )
+    )
+
+@App.page(layout=None)
+def mantine_layout_2(lib):
+    mobileOpened, setMobileOpened = lib.hooks.use_state(False)
+    desktopOpened, setDesktopOpened = lib.hooks.use_state(True)
+    toggleMobile = lib.hooks.use_callback(lambda e: setMobileOpened(lambda openedState: not openedState))
+    toggleDesktop = lib.hooks.use_callback(lambda e: setDesktopOpened(lambda openedState: not openedState))
+    return lib.m.AppShell(
+        header=lib.Props(height=60), 
+        padding="md", 
+        navbar=lib.Props(
+            width=300, 
+            breakpoint='sm', 
+            collapsed=lib.Props(
+                mobile=not mobileOpened, 
+                desktop= not desktopOpened
+            ), 
+            desktopOpened=True
+        ),
+    )(
+        lib.m.AppShellHeader(
+            lib.m.Group(h="100%", px="md")(
+                lib.m.Burger(
+                    opened=mobileOpened, 
+                    onClick=toggleMobile, 
+                    hiddenFrom="sm", 
+                    size="sm"
+                ),
+                lib.m.Burger(
+                    opened=desktopOpened, 
+                    onClick=toggleDesktop, 
+                    visibleFrom="sm", size="sm"
+                ),
+                "The burger icon is always visible"
+            )
+        ),
+        lib.m.AppShellNavbar(p="md", style=lib.Style(overflow="auto"))(
+            "You can collapse the Navbar both on desktop and mobile. After sm breakpoint, the navbar is",
+            "no longer offset by padding in the main element and it takes the full width of the screen",
+            "when opened.",
+            lib.tethys.AppNavLinks(app=App)
+        ),
+        lib.m.AppShellMain(
+            lib.m.Text(
+                "This is the main section, your app content here."
+            ),
+            lib.m.Text(
+                "The navbar is collapsible both on mobile and desktop. Nice!"
+            ),
+            lib.m.Text(
+                "Mobile and desktop opened state can be managed separately."
+            )
+        )
+    )

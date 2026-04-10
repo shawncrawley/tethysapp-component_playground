@@ -4,7 +4,10 @@ from time import sleep
 @App.page
 def geolocation(lib):
     lib.register("geolocation.js", "geo", host="/static/component_playground/js", default_export="Geolocation")
-    lib.bs.Toast  # Pre-load the Toast, since it loads conditionally
+    # Pre-load the Toast components, since they render conditionally (otherwise, a refresh will be required after the first load)
+    lib.bs.Toast()
+    lib.bs.ToastHeader()
+    lib.bs.ToastBody()
     error, set_error = lib.hooks.use_state(None)
     return lib.tethys.Display(
         lib.geo.Geolocation(
@@ -15,7 +18,7 @@ def geolocation(lib):
             onChange=lambda e: print(f"Change event: {e}"),
         ),
         lib.bs.Toast(
-            style=lib.Style(position="absolute", top="70px", right="10px", zIndex="1000"),
+            style=lib.Style(position="absolute", right="10px", zIndex="1000"),
             className="d-inline-block m-1",
             bg="danger",
             onClose=lambda _: set_error(None),

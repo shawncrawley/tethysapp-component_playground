@@ -18,11 +18,7 @@ def map_display_feature_props_on_click(lib):
         ),
         lib.tethys.Map(
             lib.ol.layer.Vector(
-                onClick=lambda e: set_props(
-                    e.features[0]
-                    if e.features
-                    else lib.Props(Message="No features found")
-                )
+                onPointerFeatureChange=lambda e: set_props(e.feature or {})
             )(
                 lib.ol.source.Vector(
                     options=lib.Props(
