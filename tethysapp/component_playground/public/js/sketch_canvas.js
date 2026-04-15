@@ -8,6 +8,8 @@ import {
     XCircleFill
 } from 'https://esm.sh/react-bootstrap-icons?deps=react@19.0,react-dom@19.0&external=react,react-dom';
 
+let debounceTimeout;
+
 export default function SketchCanvas(props, context) {
     const sketchCanvasHandler = React.useRef(null);
     const onExportRef = React.useRef(props.onExport);
@@ -17,6 +19,36 @@ export default function SketchCanvas(props, context) {
         onExportRef.current = props.onExport;
     }
     delete props.onExport;
+    props.onChange = function () {
+        window.clearTimeout(debounceTimeout);
+        debounceTimeout = window.setTimeout(function () {
+            sketchCanvasHandler.current?.exportImage("png").then((base64) => {
+                if (base64) {
+                    // 1. Remove the header (e.g., "data:image/png;base64,") if it exists
+                    const base64Content = base64.split(',')[1] || base64;
+                    
+                    // 2. Decode base64 to binary string
+                    const byteString = atob(base64Content);
+                    let n = byteString.length;
+                    const u8arr = new Uint8Array(n);
+                    
+                    while (n--) {
+                        u8arr[n] = byteString.charCodeAt(n);
+                    }
+    
+                    // 3. Create a File object
+                    const file = new File([u8arr], "canvas.png", { type: "image/png" });
+    
+                    // 4. Use DataTransfer to programmatically set the FileList
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    
+                    const fileInput = document.getElementById("react-sketch-hidden-input");
+                    fileInput.files = dataTransfer.files; // Assign the files to the input
+                }
+            });
+        }, 1000);
+    }
 
     function handleExport() {
         sketchCanvasHandler.current?.exportImage("png").then((base64) => {
@@ -62,6 +94,7 @@ export default function SketchCanvas(props, context) {
 
     return React.createElement("div", {style: {position: "relative"}}, [
         React.createElement(ReactSketchCanvas, props),
+        React.createElement("input", {type: "file", id: "react-sketch-hidden-input", name: props.name || "sketch", style: {display: "none"}}),
         React.createElement(
             "div",
             {
