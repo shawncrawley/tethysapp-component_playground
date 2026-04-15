@@ -66,7 +66,9 @@ def preload_components(lib, script_name):
         lib.bs.FormGroup()
         lib.bs.FormLabel()
         lib.bs.FormControl()
-
+    elif script_name == "run_model_and_show_results":
+        lib.bs.Alert()
+        lib.bs.AlertHeading()
 
 def EditorAndPreview(lib, script_name):
     lib.register("editor.js", "e", default_export="Editor", host="/static/component_playground/js")
