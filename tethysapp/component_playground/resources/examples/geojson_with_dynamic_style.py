@@ -6,7 +6,7 @@ def geojson_with_dynamic_style(lib):
     fill_color, set_fill_color = lib.hooks.use_state("#ff0000")
     stroke_color, set_stroke_color = lib.hooks.use_state("#000000")
 
-    return lib.tethys.Display(style=lib.Style(position="relative"))(
+    return lib.tethys.Display(
         lib.html.div(style=lib.Style(position="absolute", top=10, right=20, zIndex=1))(
             lib.bs.FormLabel(htmlFor="fill-color")("Fill Color"),
             lib.bs.FormControl(
