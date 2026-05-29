@@ -141,7 +141,7 @@ def EditorAndPreview(lib, script_name):
                     lib.e.Editor(
                         height="80vh",
                         defaultLanguage="python",
-                        value=editor_code,
+                        defaultValue=editor_code,
                         onChange=lambda v, _: (
                             set_editor_code(v),
                             (
