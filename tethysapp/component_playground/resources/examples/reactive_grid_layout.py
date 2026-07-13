@@ -25,12 +25,12 @@ def generate_layout(lib):
 def reactive_grid_layout(lib):
     layout, set_layout = lib.hooks.use_state(generate_layout(lib))
     lib.register(
-        "react-grid-layout@1.5.3",
+        "react-grid-layout@2.2.3",
         "rgl",
         default_export="RGL",
         styles=[
-            "https://esm.sh/react-resizable@3.0.5/css/styles.css",
-            "https://esm.sh/react-grid-layout@1.5.3/css/styles.css",
+            "https://esm.sh/react-resizable@4.0.2/css/styles.css",
+            "https://esm.sh/react-grid-layout@2.2.3/css/styles.css",
         ],
     )
 
@@ -46,10 +46,12 @@ def reactive_grid_layout(lib):
             "Generate New Layout"
         ),
         lib.rgl.RGL(
-            layout=layout,
-            cols=12,
-            rowHeight=30,
             width=800,
+            layout=layout,
+            gridConfig=lib.Props(
+                cols=12,
+                rowHeight=30,
+            )
         )(
             *[
                 lib.html.div(
